@@ -247,7 +247,13 @@ int main() {
 
     return 0;
 }*/
+
+
+
 /// testiname su auto rezimu 
+
+
+
 #include <iostream>
 #include <vector>
 #include <stack>
@@ -256,6 +262,7 @@ int main() {
 #include <sstream>
 #include <random>
 #include <unordered_set>
+
 
 int i = 0;
 std::vector<int> num, lowpt, tevas, visited;
@@ -317,69 +324,40 @@ int main() {
     if (pasirinkimas == 1) {
         std::cout << "Įveskite viršūnių skaičių: ";
         std::cin >> n;
-        adjList.resize(n);
+        bool inputIsValid = false;
 
-        bool tinkamasBriaunuSkaicius = false;
-        while (!tinkamasBriaunuSkaicius) {
+        while (!inputIsValid) {
             std::cout << "Įveskite briaunų skaičių: ";
             std::cin >> m;
 
             if (m < n - 1) {
-                std::cout << "Per mažai briaunų sukurti susijusiam grafui. Prašome įvesti didesnį skaičių." << std::endl;
+                std::cout << "Per mažai briaunų sukurti susijusiam grafui. Prašome įvesti didesnį skaičių.\n";
             }
-            else if (m > (n * (n - 1) / 2)) {
-                std::cout << "Įvestas per didelis briaunų skaičius. Prašome įvesti mažesnį skaičių." << std::endl;
+            else if (m > n * (n - 1) / 2) {
+                std::cout << "Įvestas per didelis briaunų skaičius. Prašome įvesti mažesnį skaičių.\n";
             }
             else {
-                tinkamasBriaunuSkaicius = true;
+                inputIsValid = true;
             }
         }
-        
+
         std::mt19937 rng(std::random_device{}());
         std::uniform_int_distribution<int> dist(0, n - 1);
-        /*
+
+        adjList.resize(n);
+        egzistuojanciosBriaunos.clear();
+
         // Užtikrinama, kad kiekviena viršūnė turi bent vieną briauną
-        int sukurtosBriaunos = 0;
-        while (sukurtosBriaunos < m) {
-            int u = dist(rng);
-            int v = dist(rng);
-            if (u != v && egzistuojanciosBriaunos.find(std::to_string(std::min(u, v)) + "-" + std::to_string(std::max(u, v))) == egzistuojanciosBriaunos.end()) {
-                PridetiBriauna(u, v, egzistuojanciosBriaunos);
-                sukurtosBriaunos++;
-            }
+        for (int i = 0; i < m; ++i) {
+            int u, v;
+            do {
+                u = dist(rng);
+                v = dist(rng);
+            } while (u == v || egzistuojanciosBriaunos.count(std::to_string(std::min(u, v)) + "-" + std::to_string(std::max(u, v))));
+
+            PridetiBriauna(u, v, egzistuojanciosBriaunos);
         }
     }
-    */
-        bool rastaArtikuliaciniaiTaskai = false;
-        while (!rastaArtikuliaciniaiTaskai) {
-            adjList.clear();
-            adjList.resize(n);
-            egzistuojanciosBriaunos.clear();
-            articulationPoints.clear();
-
-            int sukurtosBriaunos = 0;
-            while (sukurtosBriaunos < m) {
-                int u = dist(rng);
-                int v = dist(rng);
-                if (u != v && egzistuojanciosBriaunos.find(std::to_string(std::min(u, v)) + "-" + std::to_string(std::max(u, v))) == egzistuojanciosBriaunos.end()) {
-                    PridetiBriauna(u, v, egzistuojanciosBriaunos);
-                    sukurtosBriaunos++;
-                }
-            }
-
-            // Tikrinama, ar yra artikuliaciniai taškai
-            for (int v = 0; v < n; ++v) {
-                if (!visited[v]) {
-                    DvigubaiJungikomponente(v, -1);
-                }
-            }
-
-            if (!articulationPoints.empty()) {
-                rastaArtikuliaciniaiTaskai = true;
-            }
-        }
-    }
-
 
     else if (pasirinkimas == 2) {
         std::cout << "Įveskite viršūnių skaičių: ";
@@ -429,3 +407,4 @@ int main() {
 
     return 0;
 }
+
