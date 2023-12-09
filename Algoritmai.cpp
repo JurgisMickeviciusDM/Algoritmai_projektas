@@ -252,6 +252,7 @@ int main() {
 
 /// testiname su auto rezimu 
 
+//geras kodas
 
 
 #include <iostream>
@@ -262,7 +263,6 @@ int main() {
 #include <sstream>
 #include <random>
 #include <unordered_set>
-
 
 int i = 0;
 std::vector<int> num, lowpt, tevas, visited;
@@ -407,4 +407,7 @@ int main() {
 
     return 0;
 }
+
+
+
 
