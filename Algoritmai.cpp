@@ -516,6 +516,10 @@ std::stack<std::pair<int, int>> S;
 std::vector<std::vector<std::pair<int, int>>> dvigubai_jungios_komponentes;
 std::vector<std::vector<int>> adjList;
 
+bool ArSkaiciai(const std::string& eilute);
+void PridetiBriauna(int u, int v, std::unordered_set<std::string>& egzistuojanciosBriaunos);
+void DvigubaiJungikomponente(int v, int u);
+
 bool ArSkaiciai(const std::string& eilute) {
     for (char simbolis : eilute) {
         if (!std::isdigit(simbolis) && !std::isspace(simbolis) && simbolis != '+' && simbolis != '-' && simbolis != '*' && simbolis != '/') {
@@ -574,7 +578,10 @@ int main() {
     int n, m, pasirinkimas;
     std::unordered_set<std::string> egzistuojanciosBriaunos;
 
+
     while (true) {
+
+
         std::cout << "Pasirinkite: 1 - automatinis grafo generavimas, 2 - rankinis briaunų įvedimas ranka: ";
         if (!(std::cin >> pasirinkimas)) {
             std::cout << "Neteisinga įvestis. Prašome įvesti skaičių." << std::endl;
@@ -638,24 +645,45 @@ int main() {
         }
 
         else if (pasirinkimas == 2) {
-            std::cout << "Įveskite viršūnių skaičių: ";
-            std::cin >> n;
+
+            while (true) {
+                std::cout << "Įveskite viršūnių skaičių: ";
+                if (!(std::cin >> n)) {
+                    std::cout << "Netinkama įvestis. Prašome įvesti skaičių: ";
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                }
+                else {
+                    break; 
+                }
+            }
+
             adjList.resize(n);
             std::cin.ignore();
 
             std::string briaunuEilute;
-            std::cout << "Pasirinkite: 1 - įvesti briaunas raidėmis, 2 - įvesti briaunas skaičiais: ";
             int briaunuIvestis;
-            std::cin >> briaunuIvestis;
+            while (true) {
+                std::cout << "Pasirinkite: 1 - įvesti briaunas raidėmis, 2 - įvesti briaunas skaičiais: ";
+                if (std::cin >> briaunuIvestis && (briaunuIvestis == 1 || briaunuIvestis == 2)) {
+                    break;
+                }
+                else {
+                    std::cout << "Neteisingas pasirinkimas. Įveskite 1 arba 2." << std::endl;
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
+                }
+            }
 
+            std::cin.ignore();
             if (briaunuIvestis == 1) {
+
                 std::cout << "Įveskite visas briaunas raidėmis vienoje eilutėje, atskirtas tarpais (pvz.: A B C D): ";
-                std::cin.ignore();
                 std::getline(std::cin, briaunuEilute);
             }
             else if (briaunuIvestis == 2) {
+
                 std::cout << "Įveskite visas briaunas skaičiais vienoje eilutėje, atskirtas tarpais (pvz.: 0 1 2 3 4): ";
-                std::cin.ignore();
                 std::getline(std::cin, briaunuEilute);
 
                 if (!ArSkaiciai(briaunuEilute)) {
@@ -663,10 +691,7 @@ int main() {
                     return 1;
                 }
             }
-            else {
-                std::cout << "Neteisingas pasirinkimas." << std::endl;
-                return 1;
-            }
+
 
             std::istringstream iss(briaunuEilute);
             int u, v;
@@ -674,6 +699,7 @@ int main() {
                 PridetiBriauna(u, v, egzistuojanciosBriaunos);
             }
         }
+
         else {
             std::cout << "Neteisingas pasirinkimas." << std::endl;
             return 1;
@@ -683,6 +709,8 @@ int main() {
         lowpt.assign(n, 0);
         tevas.assign(n, -1);
         visited.assign(n, 0);
+        articulationPoints.clear();
+        dvigubai_jungios_komponentes.clear();
 
         for (int v = 0; v < n; ++v) {
             if (!visited[v]) {
@@ -728,6 +756,7 @@ int main() {
             std::cout << "Neteisingas pasirinkimas." << std::endl;
             return 1;
         }
+
 
         return 0;
     }
