@@ -8,11 +8,12 @@
 #include <unordered_set>
 #include <cctype>
 #include <chrono>
+#include <fstream>
 
 
 int i = 0;
-std::vector<int> num, lowpt, tevas, aplankyta;
-std::set<int> arrtikuliacinisTaskas;
+std::vector<int> numeris, low_taskas, tevas, aplankyta;
+std::set<int> NutrukimoTaskas;
 std::stack<std::pair<int, int>> S;
 std::vector<std::vector<std::pair<int, int>>> dvigubai_jungios_komponentes;
 std::vector<std::vector<int>> adjList;
@@ -54,7 +55,7 @@ void PridetiBriauna(int u, int v, std::unordered_set<std::string>& egzistuojanci
 
 void DvigubaiJungikomponente(int v, int u) {
     int j = i++;
-    num[v] = lowpt[v] = j;
+    numeris[v] = low_taskas[v] = j;
     aplankyta[v] = 1;
     int vaikas = 0;
 
@@ -64,13 +65,13 @@ void DvigubaiJungikomponente(int v, int u) {
             S.push({ v, w });
             tevas[w] = v;
             DvigubaiJungikomponente(w, v);
-            lowpt[v] = std::min(lowpt[v], lowpt[w]);
+            low_taskas[v] = std::min(low_taskas[v], low_taskas[w]);
 
-            if ((u != -1 && lowpt[w] >= num[v]) || (u == -1 && vaikas > 1)) {
-                arrtikuliacinisTaskas.insert(v);
+            if ((u != -1 && low_taskas[w] >= numeris[v]) || (u == -1 && vaikas > 1)) {
+                NutrukimoTaskas.insert(v);
             }
 
-            if (lowpt[w] >= num[v]) {
+            if (low_taskas[w] >= numeris[v]) {
                 std::vector<std::pair<int, int>> komponente;
                 std::pair<int, int> briauna;
                 do {
@@ -81,222 +82,318 @@ void DvigubaiJungikomponente(int v, int u) {
                 dvigubai_jungios_komponentes.push_back(komponente);
             }
         }
-        else if (w != u && num[w] < num[v]) {
+        else if (w != u && numeris[w] < numeris[v]) {
             S.push({ v, w });
-            lowpt[v] = std::min(lowpt[v], num[w]);
+            low_taskas[v] = std::min(low_taskas[v], numeris[w]);
         }
     }
 }
+int komponentuSkaicius = 0;
 
 int main() {
     int n, m, pasirinkimas;
     std::unordered_set<std::string> egzistuojanciosBriaunos;
-    std::chrono::duration<double, std::milli> autoDuration, manualDuration;
+    std::chrono::duration<double, std::milli> autolaikas, rankalaikas, failoskaitymotrukme;
 
 
     while (true) {
-        
 
-        std::cout << "Pasirinkite: 1 - automatinis grafo generavimas, 2 - rankinis briaunu ivedimas ranka, 3-is failo: ";
-        if (!(std::cin >> pasirinkimas)) {
-            std::cout << "Neteisinga ivestis. Prasome ivesti skaiciu." << std::endl;
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            continue;  // Grįžtame į ciklo pradžią
-        }
 
-        if (pasirinkimas != 1 && pasirinkimas != 2) {
-            std::cout << "Neteisingas pasirinkimas." << std::endl;
-            continue;  // Grįžtame į ciklo pradžią, jei pasirinkimas yra neteisingas
-        }
-
-        if (pasirinkimas == 1) {
-            std::cout << "Iveskite virsuniu skaiciu: ";
-            while (!(std::cin >> n) || std::cin.get() != '\n') {
-                std::cout << "Netinkama ivestis. Prasome ivesti skaiciu: ";
+        while (true) {
+            std::cout << "Pasirinkite: 1 - automatinis grafo generavimas, 2 - rankinis briaunu ivedimas ranka, 3 - is failo: ";
+            if (!(std::cin >> pasirinkimas)) {
+                std::cout << "Neteisinga ivestis. Prasome ivesti skaiciu." << std::endl;
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                continue;
             }
 
-            bool inputIsValid = false;
-            while (!inputIsValid) {
-                std::cout << "Iveskite briaunu skaiciu: ";
-                std::string m_input;
-                std::cin >> m_input;
-
-                if (ArSkaiciai(m_input)) {
-                    m = std::stoi(m_input);
-                    if (m < n - 1) {
-                        std::cout << "Per mazai briaunu sukurti susijusiam grafui. Prasome ivesti didesni skaiciu.\n";
-                    }
-                    else if (m > n * (n - 1) / 2) {
-                        std::cout << "Ivestas per didelis briaunu skaicius. Prasome ivesti mazesni skaiciu.\n";
-                    }
-                    else {
-                        inputIsValid = true;
-                    }
-                }
-                else {
-                    std::cout << "Netinkama ivestis. Prasome ivesti skaiciu.\n";
-                }
+            if (pasirinkimas < 1 || pasirinkimas > 3) {
+                std::cout << "Neteisingas pasirinkimas." << std::endl;
+                continue;
             }
 
-            std::mt19937 rng(std::random_device{}());
-            std::uniform_int_distribution<int> dist(0, n - 1);
-            auto start = std::chrono::high_resolution_clock::now();
 
-
-            adjList.resize(n);
-            egzistuojanciosBriaunos.clear();
-
-            for (int i = 0; i < m; ++i) {
-                int u, v;
-                do {
-                    u = dist(rng);
-                    v = dist(rng);
-                } while (u == v || egzistuojanciosBriaunos.count(std::to_string(std::min(u, v)) + "-" + std::to_string(std::max(u, v))));
-
-                PridetiBriauna(u, v, egzistuojanciosBriaunos);
-            }
-            auto end = std::chrono::high_resolution_clock::now();
-            autoDuration = end - start;
-        }
-
-        else if (pasirinkimas == 2) {
-
-            while (true) {
+            if (pasirinkimas == 1) {
                 std::cout << "Iveskite virsuniu skaiciu: ";
-                if (!(std::cin >> n)) {
+                while (!(std::cin >> n) || std::cin.get() != '\n') {
                     std::cout << "Netinkama ivestis. Prasome ivesti skaiciu: ";
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 }
-                else {
-                    break; 
+
+                bool inputIsValid = false;
+                while (!inputIsValid) {
+                    std::cout << "Iveskite briaunu skaiciu: ";
+                    std::string m_input;
+                    std::cin >> m_input;
+
+                    if (ArSkaiciai(m_input)) {
+                        m = std::stoi(m_input);
+                        if (m < n - 1) {
+                            std::cout << "Per mazai briaunu sukurti susijusiam grafui. Prasome ivesti didesni skaiciu.\n";
+                        }
+                        else if (m > n * (n - 1) / 2) {
+                            std::cout << "Ivestas per didelis briaunu skaicius. Prasome ivesti mazesni skaiciu.\n";
+                        }
+                        else {
+                            inputIsValid = true;
+                        }
+                    }
+                    else {
+                        std::cout << "Netinkama ivestis. Prasome ivesti skaiciu.\n";
+                    }
                 }
+
+                std::mt19937 rng(std::random_device{}());
+                std::uniform_int_distribution<int> dist(0, n - 1);
+                auto startas1 = std::chrono::high_resolution_clock::now();
+
+
+                adjList.resize(n);
+                egzistuojanciosBriaunos.clear();
+
+                for (int i = 0; i < m; ++i) {
+                    int u, v;
+                    do {
+                        u = dist(rng);
+                        v = dist(rng);
+                    } while (u == v || egzistuojanciosBriaunos.count(std::to_string(std::min(u, v)) + "-" + std::to_string(std::max(u, v))));
+
+                    PridetiBriauna(u, v, egzistuojanciosBriaunos);
+                }
+                auto pabaiga1 = std::chrono::high_resolution_clock::now();
+                autolaikas = pabaiga1 - startas1;
             }
 
-            adjList.resize(n);
-            std::cin.ignore();
+            else if (pasirinkimas == 2) {
 
-            adjList.resize(n);
-            std::string briaunuEilute;
-            bool validEdgeInput = false;
-            int briaunuIvestis;
+                while (true) {
+                    std::cout << "Iveskite virsuniu skaiciu: ";
+                    if (!(std::cin >> n)) {
+                        std::cout << "Netinkama ivestis. Prasome ivesti skaiciu: ";
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                    else {
+                        break;
+                    }
+                }
 
-            while (!validEdgeInput) {
-                std::cout << "Pasirinkite: 1 - ivesti briaunas raidemis, 2 - ivesti briaunas skaiciais: ";
-                if (!(std::cin >> briaunuIvestis)) {
+                adjList.resize(n);
+                std::cin.ignore();
+
+                adjList.resize(n);
+                std::string briaunuEilute;
+                bool validEdgeInput = false;
+                int briaunuIvestis;
+
+                while (!validEdgeInput) {
+                    std::cout << "Pasirinkite: 1 - ivesti briaunas raidemis, 2 - ivesti briaunas skaiciais: ";
+                    if (!(std::cin >> briaunuIvestis)) {
+                        std::cout << "Netinkama ivestis. Prasome ivesti skaiciu: ";
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        continue;
+                    }
+
+                    if (briaunuIvestis == 1) {
+                        while (!validEdgeInput) {
+                            std::cout << "Iveskite visas briaunas raidemis vienoje eiluteje (pvz: A B C D): ";
+                            std::getline(std::cin >> std::ws, briaunuEilute);
+
+                            if (ArRaidemis(briaunuEilute)) {
+                                validEdgeInput = true;
+                            }
+                            else {
+                                std::cout << "Netinkama ivestis .\n";
+                            }
+                        }
+                    }
+                    else if (briaunuIvestis == 2) {
+                        while (!validEdgeInput) {
+                            std::cout << "Iveskite visas briaunas skaiciais vienoje eiluteje (pvz: 0 1 0 3 3 1): ";
+                            std::getline(std::cin >> std::ws, briaunuEilute);
+                            if (ArSkaiciai(briaunuEilute)) {
+                                validEdgeInput = true;
+                            }
+                            else {
+                                std::cout << "Netinkama ivestis.\n";
+                            }
+                        }
+                    }
+                    else {
+                        std::cout << "Neteisingas pasirinkimas. Prasome pasirinkti iš naujo." << std::endl;
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                }
+
+                auto startas2 = std::chrono::high_resolution_clock::now();
+
+                std::istringstream iss(briaunuEilute);
+                int u, v;
+                while (iss >> u >> v) {
+                    PridetiBriauna(u, v, egzistuojanciosBriaunos);
+                }
+                auto pabaiga2 = std::chrono::high_resolution_clock::now();
+                rankalaikas = pabaiga2 - startas2;
+            }
+
+            else if (pasirinkimas == 3) {
+                std::ifstream file("grafas.txt");
+                if (!file) {
+                    std::cerr << "Nepavyko atidaryti failo." << std::endl;
+                    continue;
+                }
+
+                std::cout << "Iveskite virsuniu skaiciu: ";
+                if (!(std::cin >> n)) {
                     std::cout << "Netinkama ivestis. Prasome ivesti skaiciu: ";
                     std::cin.clear();
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     continue;
                 }
 
-                if (briaunuIvestis == 1) {
-                    while (!validEdgeInput) {
-                        std::cout << "Iveskite visas briaunas raidemis vienoje eiluteje (pvz: A B C D): ";
-                        std::getline(std::cin >> std::ws, briaunuEilute); 
+                adjList.resize(n);
+                egzistuojanciosBriaunos.clear();
 
-                        if (ArRaidemis(briaunuEilute)) {
-                            validEdgeInput = true;
-                        }
-                        else {
-                            std::cout << "Netinkama ivestis .\n";
-                        }
+                std::string line;
+                auto startas3 = std::chrono::high_resolution_clock::now();
+                while (std::getline(file, line)) {
+                    std::istringstream iss(line);
+                    int u, v;
+                    while (iss >> u >> v) {
+                        PridetiBriauna(u, v, egzistuojanciosBriaunos);
                     }
                 }
-                else if (briaunuIvestis == 2) {
-                    while (!validEdgeInput) {
-                        std::cout << "Iveskite visas briaunas skaiciais vienoje eiluteje (pvz: 0 1 0 3 3 1): ";
-                        std::getline(std::cin >> std::ws, briaunuEilute); 
-                        if (ArSkaiciai(briaunuEilute)) {
-                            validEdgeInput = true;
-                        }
-                        else {
-                            std::cout << "Netinkama ivestis.\n";
-                        }
+                auto pabaiga3 = std::chrono::high_resolution_clock::now();
+                failoskaitymotrukme = pabaiga3 - startas3;
+                file.close();
+            }
+
+
+            else {
+                std::cout << "Neteisingas pasirinkimas." << std::endl;
+                return 1;
+            }
+
+            auto Pradzia = std::chrono::high_resolution_clock::now();
+            numeris.assign(n, 0);
+            low_taskas.assign(n, 0);
+            tevas.assign(n, -1);
+            aplankyta.assign(n, 0);
+            NutrukimoTaskas.clear();
+            dvigubai_jungios_komponentes.clear();
+
+            for (int v = 0; v < n; ++v) {
+                if (!aplankyta[v]) {
+                    DvigubaiJungikomponente(v, -1);
+                }
+            }
+            auto Pabaiga = std::chrono::high_resolution_clock::now(); // Baigti matuoti laiką
+            std::chrono::duration<double, std::milli> Laikas = Pabaiga - Pradzia;
+
+            
+
+
+            std::cout << "Pasirinkite: 1 - isvesti grafo duomenis raidemis, 2 - isvesti grafo duomenis skaiciais: ";
+            int isvestiesPasirinkimas;
+            std::cin >> isvestiesPasirinkimas;
+            /*
+            if (isvestiesPasirinkimas == 1) {
+                std::cout << "Nutrukimo taskai:\n";
+                for (int ap : NutrukimoTaskas) {
+                    std::cout << char('A' + ap) << " ";
+                }
+                std::cout << '\n';
+
+                std::cout << "Dvigubai jungios komponentes:\n";
+                for (const auto& komponente : dvigubai_jungios_komponentes) {
+                    for (const auto& briauna : komponente) {
+                        std::cout << "(" << char('A' + briauna.first) << ", " << char('A' + briauna.second) << ") ";
                     }
-                }
-                else {
-                    std::cout << "Neteisingas pasirinkimas. Prasome pasirinkti iš naujo." << std::endl;
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    std::cout << '\n';
                 }
             }
-
-            auto start = std::chrono::high_resolution_clock::now(); 
-
-            std::istringstream iss(briaunuEilute);
-            int u, v;
-            while (iss >> u >> v) {
-                PridetiBriauna(u, v, egzistuojanciosBriaunos);
-            }
-            auto end = std::chrono::high_resolution_clock::now(); 
-            manualDuration = end - start;
-        }
-        else {
-            std::cout << "Neteisingas pasirinkimas." << std::endl;
-            return 1;
-        }
-
-        num.assign(n, 0);
-        lowpt.assign(n, 0);
-        tevas.assign(n, -1);
-        aplankyta.assign(n, 0);
-        arrtikuliacinisTaskas.clear();
-        dvigubai_jungios_komponentes.clear();
-
-        for (int v = 0; v < n; ++v) {
-            if (!aplankyta[v]) {
-                DvigubaiJungikomponente(v, -1);
-            }
-        }
-
-        std::cout << "Pasirinkite: 1 - isvesti grafo duomenis raidemis, 2 - isvesti grafo duomenis skaiciais: ";
-        int isvestiesPasirinkimas;
-        std::cin >> isvestiesPasirinkimas;
-
-        if (isvestiesPasirinkimas == 1) {
-            std::cout << "Artikuliaciniai taskai:\n";
-            for (int ap : arrtikuliacinisTaskas) {
-                std::cout << char('A' + ap) << " ";
-            }
-            std::cout << '\n';
-
-            std::cout << "Dvigubai jungios komponentes:\n";
-            for (const auto& komponente : dvigubai_jungios_komponentes) {
-                for (const auto& briauna : komponente) {
-                    std::cout << "(" << char('A' + briauna.first) << ", " << char('A' + briauna.second) << ") ";
+            else if (isvestiesPasirinkimas == 2) {
+                std::cout << "Nutrukimo taskai:\n";
+                for (int ap : NutrukimoTaskas) {
+                    std::cout << ap << " ";
                 }
                 std::cout << '\n';
-            }
-        }
-        else if (isvestiesPasirinkimas == 2) {
-            std::cout << "Artikuliaciniai taskai:\n";
-            for (int ap : arrtikuliacinisTaskas) {
-                std::cout << ap << " ";
-            }
-            std::cout << '\n';
 
-            std::cout << "Dvigubai jungios komponentes:\n";
-            for (const auto& komponente : dvigubai_jungios_komponentes) {
-                for (const auto& briauna : komponente) {
-                    std::cout << "(" << briauna.first << ", " << briauna.second << ") ";
+                std::cout << "Dvigubai jungios komponentes:\n";
+                for (const auto& komponente : dvigubai_jungios_komponentes) {
+                    for (const auto& briauna : komponente) {
+                        std::cout << "(" << briauna.first << ", " << briauna.second << ") ";
+                    }
+                    std::cout << '\n';
+                }
+            }
+            else {
+                std::cout << "Neteisingas pasirinkimas." << std::endl;
+                return 1;
+            }*/
+            if (isvestiesPasirinkimas == 1) {
+                std::cout << "Nutrukimo taskai:\n";
+                std::cout << "Gavome " << NutrukimoTaskas.size() << " taskus: ";
+                for (int ap : NutrukimoTaskas) {
+                    std::cout << char('A' + ap) << " ";
                 }
                 std::cout << '\n';
+
+                std::cout << "Dvigubai jungios komponentes " << dvigubai_jungios_komponentes.size() << ":\n";
+                int komponentuSkaicius = 0;
+                for (const auto& komponente : dvigubai_jungios_komponentes) {
+                    komponentuSkaicius++;
+                    std::cout << komponentuSkaicius << ": ";
+                    for (const auto& briauna : komponente) {
+                        std::cout << "(" << char('A' + briauna.first) << ", " << char('A' + briauna.second) << ") ";
+                    }
+                    std::cout << '\n';
+                }
             }
+            else if (isvestiesPasirinkimas == 2) {
+                std::cout << "Nutrukimo taskai:\n";
+                std::cout << "Gavome " << NutrukimoTaskas.size() << " taskus: ";
+                for (int ap : NutrukimoTaskas) {
+                    std::cout << ap << " ";
+                }
+                std::cout << '\n';
+
+                std::cout << "Dvigubai jungios komponentes " << dvigubai_jungios_komponentes.size() << ":\n";
+                int komponentuSkaicius = 0;
+                for (const auto& komponente : dvigubai_jungios_komponentes) {
+                    komponentuSkaicius++;
+                    std::cout << komponentuSkaicius << ": ";
+                    for (const auto& briauna : komponente) {
+                        std::cout << "(" << briauna.first << ", " << briauna.second << ") ";
+                    }
+                    std::cout << '\n';
+                    
+                }
+            }
+            std::cout << "Laikas: " << Laikas.count() << " sekundziu\n";
+            /*
+            else {
+                std::cout << "Neteisingas pasirinkimas." << std::endl;
+                return 1;
+            }
+
+            if (pasirinkimas == 1) {
+                std::cout << "Laikas: " << autolaikas.count() << " s\n";
+            }
+            else if (pasirinkimas == 2) {
+                std::cout << "Laikas: " << rankalaikas.count() << " s\n";
+            }
+            else if (pasirinkimas == 3) {
+                std::cout << "Laikas is failo : " << failoskaitymotrukme.count() << " s\n";
+            }*/
+            
+            
+
+            return 0;
         }
-        else {
-            std::cout << "Neteisingas pasirinkimas." << std::endl;
-            return 1;
-        }
-        if (pasirinkimas == 1) {
-            std::cout << "Laikas: " << autoDuration.count() << " s\n";
-        }
-        else if (pasirinkimas == 2) {
-            std::cout << "Laikas: " << manualDuration.count() << " s\n";
-        }
-        return 0;
     }
 }
