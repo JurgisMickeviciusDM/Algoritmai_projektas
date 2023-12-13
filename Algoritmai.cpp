@@ -67,7 +67,7 @@ void DvigubaiJungikomponente(int v, int u) {
             low_taskas[v] = std::min(low_taskas[v], low_taskas[w]);//nustatome mažiausią reikšmę
 
             if ((u != -1 && low_taskas[w] >= numeris[v]) || (u == -1 && vaikas > 1)) {
-                NutrukimoTaskas.insert(v);//nutrūkimo taško tikrinimas, jei u=-1..., ar v DFS šaknis ir ar yra vaikas daugiau negu 1
+                NutrukimoTaskas.insert(v);//nutrūkimo taško tikrinimas, jei u=-1..., ir ar yra vaikas daugiau negu 1
 
             }
 
@@ -102,10 +102,10 @@ int main() {
 
         while (true) {
             std::cout << "Pasirinkite: 1 - automatinis grafo generavimas, 2 - rankinis briaunu ivedimas ranka, 3 - is failo: ";
-            if (!(std::cin >> pasirinkimas)) {
+            if (!(std::cin >> pasirinkimas)) {//ar sakičius
                 std::cout << "Neteisinga ivestis. Prasome ivesti skaiciu." << std::endl;
                 std::cin.clear();
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //  isvaloma eilute ir ignoruojama 
                 continue;
             }
 
@@ -123,14 +123,14 @@ int main() {
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 }
 
-                bool inputIsValid = false;
-                while (!inputIsValid) {
+                bool Inputasgeras = false;
+                while (!Inputasgeras) {//tikrins briaunu sk 
                     std::cout << "Iveskite briaunu skaiciu: ";
-                    std::string m_input;
-                    std::cin >> m_input;
+                    std::string m_ivestis;
+                    std::cin >> m_ivestis;
 
-                    if (ArSkaiciai(m_input)) {
-                        m = std::stoi(m_input);
+                    if (ArSkaiciai(m_ivestis)) {
+                        m = std::stoi(m_ivestis);// is veika skaičių
                         if (m < n - 1) {
                             std::cout << "Per mazai briaunu sukurti susijusiam grafui. Prasome ivesti didesni skaiciu.\n";
                         }
@@ -138,7 +138,7 @@ int main() {
                             std::cout << "Ivestas per didelis briaunu skaicius. Prasome ivesti mazesni skaiciu.\n";
                         }
                         else {
-                            inputIsValid = true;
+                            Inputasgeras = true;
                         }
                     }
                     else {
@@ -146,22 +146,22 @@ int main() {
                     }
                 }
 
-                std::mt19937 rng(std::random_device{}());
-                std::uniform_int_distribution<int> dist(0, n - 1);
+                std::mt19937 rng(std::random_device{}());//generuojame skaicius atsitiktinai kuriu yra nedaugiau negu n-1, nes nuo 0 pradedame  generuojame virsunes n 
+                std::uniform_int_distribution<int> dist(0, n - 1);      //sugenruojami atsitiktiniaii skaiciai is kuriu sudarynesime briaunas
                 auto startas1 = std::chrono::high_resolution_clock::now();
 
 
-                adjList.resize(n);
-                egzistuojanciosBriaunos.clear();
+                adjList.resize(n);//sarasas kuriame kiekviena virsune yra
+                egzistuojanciosBriaunos.clear();//isvalome briaunu vektoriu kad butu tuscias 
 
-                for (int i = 0; i < m; ++i) {
+                for (int i = 0; i < m; ++i) {//briaunos sukuriamos, turime n virsuniu vektorius galime kiekvienai virsunei priskirti briauna 
                     int u, v;
                     do {
-                        u = dist(rng);
+                        u = dist(rng);//atsitikitinės u ir v viršunes
                         v = dist(rng);
-                    } while (u == v || egzistuojanciosBriaunos.count(std::to_string(std::min(u, v)) + "-" + std::to_string(std::max(u, v))));
-
-                    PridetiBriauna(u, v, egzistuojanciosBriaunos);
+                    } while (u == v || egzistuojanciosBriaunos.count(std::to_string(std::min(u, v)) + "-" + std::to_string(std::max(u, v)))); //braiunos  tirkinimas
+                    // atliekame tol kol nera u ir v lygus, tikrina ar u ir v nera lygu jeigu nera tai prideda i briaunu sarasa ar nera jau tokiios briaunos 
+                    PridetiBriauna(u, v, egzistuojanciosBriaunos);  //iskvieciu funkcija prideti briauna prie egzistuojancios braiunos 
                 }
                 auto pabaiga1 = std::chrono::high_resolution_clock::now();
                 autolaikas = pabaiga1 - startas1;
@@ -177,19 +177,19 @@ int main() {
                         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     }
                     else {
-                        break;
+                        break;//jei teisinga baigiame
                     }
                 }
 
-                adjList.resize(n);
-                std::cin.ignore();
+                adjList.resize(n);// tinkamsa dydis adjlistui
+                std::cin.ignore();//ignoravimas eilutes po skaitmens 
 
                 adjList.resize(n);
-                std::string briaunuEilute;
-                bool validEdgeInput = false;
+                std::string briaunuEilute;//saugo info
+                bool tinkama_briaunu_ivestis = false;
                 int briaunuIvestis;
 
-                while (!validEdgeInput) {
+                while (!tinkama_briaunu_ivestis) {
                     std::cout << "Pasirinkite: 1 - ivesti briaunas raidemis, 2 - ivesti briaunas skaiciais: ";
                     if (!(std::cin >> briaunuIvestis)) {
                         std::cout << "Netinkama ivestis. Prasome ivesti skaiciu: ";
@@ -199,12 +199,12 @@ int main() {
                     }
 
                     if (briaunuIvestis == 1) {
-                        while (!validEdgeInput) {
+                        while (!tinkama_briaunu_ivestis) {
                             std::cout << "Iveskite visas briaunas raidemis vienoje eiluteje (pvz: A B C D): ";
                             std::getline(std::cin >> std::ws, briaunuEilute);
 
                             if (ArRaidemis(briaunuEilute)) {
-                                validEdgeInput = true;
+                                tinkama_briaunu_ivestis = true;//teisinga ivestis
                             }
                             else {
                                 std::cout << "Netinkama ivestis .\n";
@@ -212,11 +212,11 @@ int main() {
                         }
                     }
                     else if (briaunuIvestis == 2) {
-                        while (!validEdgeInput) {
+                        while (!tinkama_briaunu_ivestis) {
                             std::cout << "Iveskite visas briaunas skaiciais vienoje eiluteje (pvz: 0 1 0 3 3 1): ";
                             std::getline(std::cin >> std::ws, briaunuEilute);
                             if (ArSkaiciai(briaunuEilute)) {
-                                validEdgeInput = true;
+                                tinkama_briaunu_ivestis = true;
                             }
                             else {
                                 std::cout << "Netinkama ivestis.\n";
@@ -224,7 +224,7 @@ int main() {
                         }
                     }
                     else {
-                        std::cout << "Neteisingas pasirinkimas. Prasome pasirinkti iš naujo." << std::endl;
+                        std::cout << "Neteisingas pasirinkimas. Prasome pasirinkti is naujo." << std::endl;
                         std::cin.clear();
                         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     }
@@ -235,14 +235,14 @@ int main() {
                 std::istringstream iss(briaunuEilute);
                 int u, v;
                 while (iss >> u >> v) {
-                    PridetiBriauna(u, v, egzistuojanciosBriaunos);
+                    PridetiBriauna(u, v, egzistuojanciosBriaunos);// Pridedame briauną į grafą
                 }
                 auto pabaiga2 = std::chrono::high_resolution_clock::now();
                 rankalaikas = pabaiga2 - startas2;
             }
 
             else if (pasirinkimas == 3) {
-                std::ifstream file("grafas.txt");
+                std::ifstream file("grafas.txt");//sakitymui failo
                 if (!file) {
                     std::cerr << "Nepavyko atidaryti failo." << std::endl;
                     continue;
@@ -257,7 +257,7 @@ int main() {
                 }
 
                 adjList.resize(n);
-                egzistuojanciosBriaunos.clear();
+                egzistuojanciosBriaunos.clear();// dydis nsutatomas ir isvalome briaunas
 
                 std::string line;
                 auto startas3 = std::chrono::high_resolution_clock::now();
@@ -287,7 +287,7 @@ int main() {
             NutrukimoTaskas.clear();
             dvigubai_jungios_komponentes.clear();
 
-            for (int v = 0; v < n; ++v) {
+            for (int v = 0; v < n; ++v) {//dfs paieska, jei neaplankyta tai funkcija DvigubaiJungikOMPONENTE
                 if (!aplankyta[v]) {
                     DvigubaiJungikomponente(v, -1);
                 }
