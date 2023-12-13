@@ -36,7 +36,6 @@ bool ArRaidemis(const std::string& str) {
     std::istringstream iss(str);
     std::string edge;
     while (iss >> edge) {
-        // Check if the edge is exactly one character and it's a letter
         if (edge.length() != 1 || !std::isalpha(edge[0])) {
             return false;
         }
@@ -54,41 +53,43 @@ void PridetiBriauna(int u, int v, std::unordered_set<std::string>& egzistuojanci
 }
 
 void DvigubaiJungikomponente(int v, int u) {
-    int j = i++;
-    numeris[v] = low_taskas[v] = j;
-    aplankyta[v] = 1;
+    int j = i++; //eiles numeris
+    numeris[v] = low_taskas[v] = j; //numeris paieškos gilyn
+    aplankyta[v] = 1; //aplankymas žymimas
     int vaikas = 0;
 
-    for (int w : adjList[v]) {
-        if (!aplankyta[w]) {
+    for (int w : adjList[v]) {//eis per visas virsunes
+        if (!aplankyta[w]) { 
             vaikas++;
-            S.push({ v, w });
-            tevas[w] = v;
-            DvigubaiJungikomponente(w, v);
-            low_taskas[v] = std::min(low_taskas[v], low_taskas[w]);
+            S.push({ v, w });//pridedame į steką pora
+            tevas[w] = v;  //nustatome teva, kaip virsune
+            DvigubaiJungikomponente(w, v); // v nustatomas kaip w tėvas
+            low_taskas[v] = std::min(low_taskas[v], low_taskas[w]);//nustatome mažiausią reikšmę
 
             if ((u != -1 && low_taskas[w] >= numeris[v]) || (u == -1 && vaikas > 1)) {
-                NutrukimoTaskas.insert(v);
+                NutrukimoTaskas.insert(v);//nutrūkimo taško tikrinimas, jei u=-1..., ar v DFS šaknis ir ar yra vaikas daugiau negu 1
+
             }
 
             if (low_taskas[w] >= numeris[v]) {
                 std::vector<std::pair<int, int>> komponente;
                 std::pair<int, int> briauna;
-                do {
+                do {// iš steko visos briaunos,kurios dvigubai jungios, kol prieiname (v,w)
                     briauna = S.top();
-                    S.pop();
+                    S.pop();// iš steko šaliname briaunas
                     komponente.push_back(briauna);
                 } while (briauna != std::make_pair(v, w));
-                dvigubai_jungios_komponentes.push_back(komponente);
+                dvigubai_jungios_komponentes.push_back(komponente);// pridedame prie komponente
             }
         }
         else if (w != u && numeris[w] < numeris[v]) {
-            S.push({ v, w });
-            low_taskas[v] = std::min(low_taskas[v], numeris[w]);
+            S.push({ v, w }); // jei w yra galinė briauna ne tėvas v, tai  į steką įdedame
+            low_taskas[v] = std::min(low_taskas[v], numeris[w]);// atnaujiname lowpt reikšmę
         }
     }
 }
-int komponentuSkaicius = 0;
+
+int komponenciuskaicius = 0;
 
 int main() {
     int n, m, pasirinkimas;
@@ -297,44 +298,10 @@ int main() {
             
 
 
-            std::cout << "Pasirinkite: 1 - isvesti grafo duomenis raidemis, 2 - isvesti grafo duomenis skaiciais: ";
+           std::cout << "Pasirinkite: 1 - isvesti grafo duomenis raidemis, 2 - isvesti grafo duomenis skaiciais: ";
             int isvestiesPasirinkimas;
             std::cin >> isvestiesPasirinkimas;
-            /*
-            if (isvestiesPasirinkimas == 1) {
-                std::cout << "Nutrukimo taskai:\n";
-                for (int ap : NutrukimoTaskas) {
-                    std::cout << char('A' + ap) << " ";
-                }
-                std::cout << '\n';
-
-                std::cout << "Dvigubai jungios komponentes:\n";
-                for (const auto& komponente : dvigubai_jungios_komponentes) {
-                    for (const auto& briauna : komponente) {
-                        std::cout << "(" << char('A' + briauna.first) << ", " << char('A' + briauna.second) << ") ";
-                    }
-                    std::cout << '\n';
-                }
-            }
-            else if (isvestiesPasirinkimas == 2) {
-                std::cout << "Nutrukimo taskai:\n";
-                for (int ap : NutrukimoTaskas) {
-                    std::cout << ap << " ";
-                }
-                std::cout << '\n';
-
-                std::cout << "Dvigubai jungios komponentes:\n";
-                for (const auto& komponente : dvigubai_jungios_komponentes) {
-                    for (const auto& briauna : komponente) {
-                        std::cout << "(" << briauna.first << ", " << briauna.second << ") ";
-                    }
-                    std::cout << '\n';
-                }
-            }
-            else {
-                std::cout << "Neteisingas pasirinkimas." << std::endl;
-                return 1;
-            }*/
+           
             if (isvestiesPasirinkimas == 1) {
                 std::cout << "Nutrukimo taskai:\n";
                 std::cout << "Gavome " << NutrukimoTaskas.size() << " taskus: ";
@@ -344,10 +311,10 @@ int main() {
                 std::cout << '\n';
 
                 std::cout << "Dvigubai jungios komponentes " << dvigubai_jungios_komponentes.size() << ":\n";
-                int komponentuSkaicius = 0;
+                int komponenciuskaicius = 0;
                 for (const auto& komponente : dvigubai_jungios_komponentes) {
-                    komponentuSkaicius++;
-                    std::cout << komponentuSkaicius << ": ";
+                    komponenciuskaicius++;
+                    std::cout << komponenciuskaicius << ": ";
                     for (const auto& briauna : komponente) {
                         std::cout << "(" << char('A' + briauna.first) << ", " << char('A' + briauna.second) << ") ";
                     }
@@ -363,10 +330,10 @@ int main() {
                 std::cout << '\n';
 
                 std::cout << "Dvigubai jungios komponentes " << dvigubai_jungios_komponentes.size() << ":\n";
-                int komponentuSkaicius = 0;
+                int komponenciuskaicius = 0;
                 for (const auto& komponente : dvigubai_jungios_komponentes) {
-                    komponentuSkaicius++;
-                    std::cout << komponentuSkaicius << ": ";
+                    komponenciuskaicius++;
+                    std::cout << komponenciuskaicius << ": ";
                     for (const auto& briauna : komponente) {
                         std::cout << "(" << briauna.first << ", " << briauna.second << ") ";
                     }
@@ -375,21 +342,6 @@ int main() {
                 }
             }
             std::cout << "Laikas: " << Laikas.count() << " sekundziu\n";
-            /*
-            else {
-                std::cout << "Neteisingas pasirinkimas." << std::endl;
-                return 1;
-            }
-
-            if (pasirinkimas == 1) {
-                std::cout << "Laikas: " << autolaikas.count() << " s\n";
-            }
-            else if (pasirinkimas == 2) {
-                std::cout << "Laikas: " << rankalaikas.count() << " s\n";
-            }
-            else if (pasirinkimas == 3) {
-                std::cout << "Laikas is failo : " << failoskaitymotrukme.count() << " s\n";
-            }*/
             
             
 
